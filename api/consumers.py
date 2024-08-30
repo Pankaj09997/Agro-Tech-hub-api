@@ -15,6 +15,7 @@ class MySyncConsumer(WebsocketConsumer):
         print('Message received from client', text_data)
         # print("Name of the layer is:",self.channel_layer)
         # print("name of the channel is:",self.channel_name)
+        
 
         
         self.send(text_data=json.dumps({

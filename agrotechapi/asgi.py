@@ -8,6 +8,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agrotechapi.settings')
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
+    # Auth middlewarestack is used to get the authentication scope in channels like self.scope['username']
     "websocket": AuthMiddlewareStack(
         URLRouter(
             api.routing.websocket_urlpatterns
