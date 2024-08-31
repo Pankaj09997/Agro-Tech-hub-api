@@ -85,5 +85,5 @@ class VideoCommentSerializers(serializers.ModelSerializer):
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
         model = MyUser
-        fields = ['email', 'name']
+        fields = ['email', 'name','id']
         
