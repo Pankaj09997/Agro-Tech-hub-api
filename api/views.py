@@ -2,13 +2,16 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers
+from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from api.models import Post,Comment,VideoComment,Video
+from django.contrib.auth.models import User
+from rest_framework import generics
 from django.shortcuts import get_object_or_404
+from api . models import MyUser
 def get_token_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -132,6 +135,18 @@ class VideoAll(APIView):
     queryset=Video.objects.all().order_by('-uploaded_at')
     serializers=VideoSerializers(queryset,many=True)
     return Response(serializers.data,status=status.HTTP_200_OK)
+
+class UserListView(APIView):
+    permission_classes=[IsAuthenticated]
+    
+    def get(self, request):
+        # Query all users from MyUser instead of User
+        queryset = MyUser.objects.all()
+        serializers = UserSerializers(queryset, many=True)
+        return Response(serializers.data, status=status.HTTP_200_OK)
+        
+        
+        
     
 
          

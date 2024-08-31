@@ -1,5 +1,5 @@
 from django.urls import path
-from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll
+from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll,UserListView
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -13,7 +13,8 @@ urlpatterns = [
     path('posts/<int:post_id>/comments/',CommentView.as_view(),name='comments'),
     path('videosUpload/',VideoView.as_view(),name='videosUpload'),
     path('videos/,<int:video_id>/comments/',VideoView.as_view(),name='videosComment'),
-    path('videosall/',VideoAll.as_view(),name='videos')
+    path('videosall/',VideoAll.as_view(),name='videos'),
+    path('usersall/',UserListView.as_view(),name="Userall"),
 
     
     
