@@ -2,16 +2,17 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers
+from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,MessageSerializer
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from api.models import Post,Comment,VideoComment,Video
+from api.models import Post,Comment,VideoComment,Video,Message
 from django.contrib.auth.models import User
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
 from api . models import MyUser
+from django.http import JsonResponse
 def get_token_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -141,23 +142,15 @@ class UserListView(APIView):
     
     def get(self, request):
         # Query all users from MyUser instead of User
-        queryset = MyUser.objects.all()
+        queryset = MyUser.objects.exclude(id=request.user.id)
         serializers = UserSerializers(queryset, many=True)
         return Response(serializers.data, status=status.HTTP_200_OK)
-        
-        
-        
     
-
-         
+class MessageView(APIView):
+    def get(self,request,room_name,format=None):
+        messages=Message.objects.filter(room_name=room_name).order_by('timestamp')
+        serializer=MessageSerializer(messages,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
         
         
-         
-         
-        
-        
-        
-            
-
-        
-
+     

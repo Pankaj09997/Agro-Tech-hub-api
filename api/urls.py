@@ -1,5 +1,5 @@
 from django.urls import path
-from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll,UserListView
+from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll,UserListView,MessageView
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -15,6 +15,7 @@ urlpatterns = [
     path('videos/,<int:video_id>/comments/',VideoView.as_view(),name='videosComment'),
     path('videosall/',VideoAll.as_view(),name='videos'),
     path('usersall/',UserListView.as_view(),name="Userall"),
+    path('messages/',MessageView.as_view(),name="Messages"),
 
     
     

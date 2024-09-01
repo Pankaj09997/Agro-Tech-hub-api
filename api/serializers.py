@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment
+from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment,Message
 
 
 
@@ -86,4 +86,9 @@ class UserSerializers(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields = ['email', 'name','id']
+        
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Message
+        fields=['user','content','timestamp']
         

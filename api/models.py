@@ -118,5 +118,13 @@ class VideoComment(models.Model):
     comment = models.CharField(max_length=200)
     commented_on = models.ForeignKey(Video, on_delete=models.CASCADE)
     commented_at = models.DateTimeField(default=timezone.now)
+    
+class Message(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    room_name = models.CharField(max_length=255)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+
 
 
