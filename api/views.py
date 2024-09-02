@@ -147,8 +147,8 @@ class UserListView(APIView):
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 class MessageView(APIView):
-    def get(self,request,room_name,format=None):
-        messages=Message.objects.filter(room_name=room_name).order_by('timestamp')
+    def get(self,request,chat_room,format=None):
+        messages=Message.objects.filter(chat_room=chat_room).order_by('timestamp')
         serializer=MessageSerializer(messages,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
         
