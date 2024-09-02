@@ -1,3 +1,4 @@
+from typing import Iterable
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.core.exceptions import ValidationError
@@ -119,12 +120,31 @@ class VideoComment(models.Model):
     commented_on = models.ForeignKey(Video, on_delete=models.CASCADE)
     commented_at = models.DateTimeField(default=timezone.now)
     
+class Chatroom(models.Model):
+    user1 = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='user1',default=1)
+    user2 = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='user2',default=2)
+    
 class Message(models.Model):
-    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    room_name = models.CharField(max_length=255)
+    chat_room = models.ForeignKey(Chatroom, on_delete=models.CASCADE, related_name='chatroom', null=True, blank=True)
+    sender = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='sender',default=3)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+    read_by_sender = models.BooleanField(default=False)
+    read_by_recipient = models.BooleanField(default=False)
     
+    def __str__(self):
+        return f'{self.sender.name}: {self.content} at {self.timestamp}'
+    def clean(self):
+        if self.sender != self.chat_room.user1 and self.sender!=self.chat_room.user2:
+            return ValidationError("Sender must be one of the users in the chatroom")
+    def save(self, *args, **kwargs):
+        # Run the clean method to validate before saving
+         self.full_clean()
+         super().save(*args, **kwargs)
+        
+
+
+        
 
 
 
