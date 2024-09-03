@@ -124,6 +124,20 @@ class Chatroom(models.Model):
     user1 = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='user1',default=1)
     user2 = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='user2',default=2)
     
+    class Meta:
+        constraints=[
+            models.UniqueConstraint(fields=["user1","user2"],name="unique chatroom")
+        ]
+        
+    def clean(self):
+        if self.user1==self.user2:
+            raise ValidationError("A User Cannot chat with themselves")
+        
+    def __str__(self):
+        return f"ChatRoom between {self.user1.name} and {self.user2.name} "
+        
+        
+    
 class Message(models.Model):
     chat_room = models.ForeignKey(Chatroom, on_delete=models.CASCADE, related_name='chatroom', null=True, blank=True)
     sender = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='sender',default=3)
@@ -135,8 +149,9 @@ class Message(models.Model):
     def __str__(self):
         return f'{self.sender.name}: {self.content} at {self.timestamp}'
     def clean(self):
-        if self.sender != self.chat_room.user1 and self.sender!=self.chat_room.user2:
-            return ValidationError("Sender must be one of the users in the chatroom")
+       if self.sender not in [self.chat_room.user1, self.chat_room.user2]:
+        raise ValidationError("Sender must be one of the users in the chatroom")
+
     def save(self, *args, **kwargs):
         # Run the clean method to validate before saving
          self.full_clean()

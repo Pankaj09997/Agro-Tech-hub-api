@@ -11,7 +11,7 @@ from api.models import Post,Comment,VideoComment,Video,Message
 from django.contrib.auth.models import User
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
-from api . models import MyUser
+from api . models import MyUser,Chatroom
 from django.http import JsonResponse
 def get_token_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -147,10 +147,21 @@ class UserListView(APIView):
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 class MessageView(APIView):
-    def get(self,request,chat_room,format=None):
-        messages=Message.objects.filter(chat_room=chat_room).order_by('timestamp')
-        serializer=MessageSerializer(messages,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, chat_room_id, format=None):
+        messages = Message.objects.filter(chat_room_id=chat_room_id).order_by('timestamp')
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, chat_room_id):
+        chat_room = get_object_or_404(Chatroom, id=chat_room_id)
+        serializer = MessageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(sender=request.user, chat_room=chat_room)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         
         
      
