@@ -2,16 +2,16 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,MessageSerializer
+from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,ChatModelSerializers
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from api.models import Post,Comment,VideoComment,Video,Message
-from django.contrib.auth.models import User
+from api.models import Post,Comment,VideoComment,Video,ChatModel,MyUser
+
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
-from api . models import MyUser,Chatroom
+
 from django.http import JsonResponse
 def get_token_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -141,26 +141,23 @@ class UserListView(APIView):
     permission_classes=[IsAuthenticated]
     
     def get(self, request):
-        # Query all users from MyUser instead of User
+        
         queryset = MyUser.objects.exclude(id=request.user.id)
         serializers = UserSerializers(queryset, many=True)
         return Response(serializers.data, status=status.HTTP_200_OK)
     
-class MessageView(APIView):
-    permission_classes = [IsAuthenticated]
+class ChatView(APIView):
+    def get(self, request, room_name):
+        messages = ChatModel.objects.filter(room_name=room_name)
+        serializers = ChatModelSerializers(messages, many=True)
+        return Response(serializers.data)
 
-    def get(self, request, chat_room_id, format=None):
-        messages = Message.objects.filter(chat_room_id=chat_room_id).order_by('timestamp')
-        serializer = MessageSerializer(messages, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request, chat_room_id):
-        chat_room = get_object_or_404(Chatroom, id=chat_room_id)
-        serializer = MessageSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(sender=request.user, chat_room=chat_room)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, room_name):
+        serializers = ChatModelSerializers(data=request.data,room_name=room_name)
+        if serializers.is_valid(raise_exception=True):
+            serializers.save(room_name=room_name)
+            return Response({'message': 'Message successfully created', 'data': serializers.data}, status=status.HTTP_201_CREATED)
+        return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
         
         

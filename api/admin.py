@@ -6,7 +6,7 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
 from api.models import MyUser
-from api.models import Comment,Post,Video,VideoComment,Chatroom,Message
+from api.models import Comment,Post,Video,VideoComment,ChatModel
 
 
 class UserCreationForm(forms.ModelForm):
@@ -96,7 +96,6 @@ admin.site.register(Post)
 admin.site.register(Comment)
 admin.site.register(Video)
 admin.site.register(VideoComment)
-admin.site.register(Chatroom)
-admin.site.register(Message)
+admin.site.register(ChatModel)
 admin.site.unregister(Group)
 

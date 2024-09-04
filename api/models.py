@@ -118,44 +118,30 @@ class VideoComment(models.Model):
     author = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     comment = models.CharField(max_length=200)
     commented_on = models.ForeignKey(Video, on_delete=models.CASCADE)
-    commented_at = models.DateTimeField(default=timezone.now)
+    commented_at = models.DateTimeField(default=timezone.now)   
     
-class Chatroom(models.Model):
-    user1 = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='user1',default=1)
-    user2 = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='user2',default=2)
-    
-    class Meta:
-        constraints=[
-            models.UniqueConstraint(fields=["user1","user2"],name="unique chatroom")
-        ]
-        
-    def clean(self):
-        if self.user1==self.user2:
-            raise ValidationError("A User Cannot chat with themselves")
-        
-    def __str__(self):
-        return f"ChatRoom between {self.user1.name} and {self.user2.name} "
-        
-        
-    
-class Message(models.Model):
-    chat_room = models.ForeignKey(Chatroom, on_delete=models.CASCADE, related_name='chatroom', null=True, blank=True)
-    sender = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='sender',default=3)
-    content = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
-    read_by_sender = models.BooleanField(default=False)
-    read_by_recipient = models.BooleanField(default=False)
-    
-    def __str__(self):
-        return f'{self.sender.name}: {self.content} at {self.timestamp}'
-    def clean(self):
-       if self.sender not in [self.chat_room.user1, self.chat_room.user2]:
-        raise ValidationError("Sender must be one of the users in the chatroom")
 
-    def save(self, *args, **kwargs):
-        # Run the clean method to validate before saving
-         self.full_clean()
-         super().save(*args, **kwargs)
+class ChatModel(models.Model):
+    name = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='received_messages')
+    messages = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    room_name = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ('name', 'receiver')
+    
+    def __str__(self):
+        return f'Message from {self.name} to {self.receiver} at {self.timestamp}'
+
+
+
+    
+    
+    
+
+
+
         
 
 

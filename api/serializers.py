@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment,Message
+from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment,ChatModel
 
 
 
@@ -87,8 +87,9 @@ class UserSerializers(serializers.ModelSerializer):
         model = MyUser
         fields = ['email', 'name','id']
         
-class MessageSerializer(serializers.ModelSerializer):
+class ChatModelSerializers(serializers.ModelSerializer):
     class Meta:
-        model=Message
-        fields=['sender','content','timestamp']
+        model = ChatModel
+        fields = ['name', 'receiver', 'messages', 'timestamp', 'room_name']
         
+
