@@ -2,12 +2,12 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,ChatModelSerializers
+from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,ExpenseSerializers
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from api.models import Post,Comment,VideoComment,Video,ChatModel,MyUser
+from api.models import Post,Comment,VideoComment,Video,MyUser,Expense
 
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
@@ -146,19 +146,198 @@ class UserListView(APIView):
         serializers = UserSerializers(queryset, many=True)
         return Response(serializers.data, status=status.HTTP_200_OK)
     
-class ChatView(APIView):
-    def get(self, request, room_name):
-        messages = ChatModel.objects.filter(room_name=room_name)
-        serializers = ChatModelSerializers(messages, many=True)
-        return Response(serializers.data)
+class ChatHistoryView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensures the user is logged in
 
-    def post(self, request, room_name):
-        serializers = ChatModelSerializers(data=request.data,room_name=room_name)
-        if serializers.is_valid(raise_exception=True):
-            serializers.save(room_name=room_name)
-            return Response({'message': 'Message successfully created', 'data': serializers.data}, status=status.HTTP_201_CREATED)
-        return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request):
+        # Step 1: Get the 'user' parameter from the request
+        frnd_name = request.query_params.get('user', None)
+        mychats_data = None
 
+        # Step 2: Check if the friend exists and chats exist between the logged-in user and the friend
+        if frnd_name:
+            if MyUser.objects.filter(username=frnd_name).exists():
+                frnd_ = MyUser.objects.get(username=frnd_name)
+                if MyUser.objects.filter(me=request.user, frnd=frnd_).exists():
+                    mychats_data = MyUser.objects.get(me=request.user, frnd=frnd_).chats
+
+        # Step 3: Get all other users (friends) excluding the logged-in user
+        frnds = MyUser.objects.exclude(pk=request.user.id)
+
+        # Step 4: Return JSON response with chat data and friend list
+        return Response({
+            'my_chats': mychats_data if mychats_data else "No chat data available.",
+            'friends': [{'id': user.id, 'username': user.username} for user in frnds]
+        }, status=status.HTTP_200_OK)
         
-        
-     
+class ExpenseListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        expenses = Expense.objects.filter(user=request.user)
+        serializer = ExpenseSerializers(expenses, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ExpenseSerializers(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ExpenseDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk, user):
+        return get_object_or_404(Expense, pk=pk, user=user)
+
+    def get(self, request, pk):
+        expense = self.get_object(pk, request.user)
+        serializer = ExpenseSerializers(expense)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        expense = self.get_object(pk, request.user)
+        serializer = ExpenseSerializers(expense, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        expense = self.get_object(pk, request.user)
+        expense.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import CitizenshipVerification
+from .serializers import CitizenshipVerificationSerializer
+
+class SubmitCitizenshipVerification(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        try:
+            verification = CitizenshipVerification.objects.get(user=user)
+            if verification.is_verified:
+                return Response({
+                    "detail": "Your citizenship has already been verified.",
+                    "is_verified": True,
+                    "verification_request_sent": verification.verification_request_sent
+                }, status=status.HTTP_202_ACCEPTED)
+            
+            return Response({
+                "detail": "Verification request already submitted.",
+                "is_verified": False,
+                "verification_request_sent": verification.verification_request_sent
+            }, status=status.HTTP_102_PROCESSING)
+            
+        except CitizenshipVerification.DoesNotExist:
+            data = request.data
+            data['user'] = user.id
+            serializer = CitizenshipVerificationSerializer(data=data)
+
+            if serializer.is_valid():
+                serializer.save(verification_request_sent=True)
+                return Response({
+                    "detail": "Verification request submitted successfully.",
+                    "is_verified": False,
+                    "verification_request_sent": True
+                }, status=status.HTTP_201_CREATED)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Role
+from .serializers import RoleSerializer
+
+class SelectRoleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        role = request.data.get('role')
+
+        if role not in dict(Role.ROLE_CHOICES).keys():
+            return Response({"detail": "Invalid role selected."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            role_instance, created = Role.objects.update_or_create(
+                user=user,
+                defaults={'role': role}
+            )
+            if created:
+                return Response({"status": "success", "detail": "Role selected successfully."}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"status": "success", "detail": "Role updated successfully."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from .models import Product
+from .serializers import ProductSerializer
+
+class ProductListView(APIView):
+    """
+    List all products.
+    """
+    def get(self, request):
+        products = Product.objects.all()
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
+
+class ProductCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(farmer=request.user, user=request.user)  # Set farmer to the authenticated user
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.errors)  # Log errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProductListView(APIView):
+    """
+    List products of the authenticated user.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        products = Product.objects.filter(farmer=request.user)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+    
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Product
+from .serializers import ProductSerializer
+from rest_framework.permissions import IsAuthenticated
+
+class ProductUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, pk):
+        try:
+            product = Product.objects.get(pk=pk)
+        except Product.DoesNotExist:
+            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProductSerializer(product, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment,ChatModel
+from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment,Expense
 
 
 
@@ -87,9 +87,48 @@ class UserSerializers(serializers.ModelSerializer):
         model = MyUser
         fields = ['email', 'name','id']
         
-class ChatModelSerializers(serializers.ModelSerializer):
+class ExpenseSerializers(serializers.ModelSerializer):
     class Meta:
-        model = ChatModel
-        fields = ['name', 'receiver', 'messages', 'timestamp', 'room_name']
+        model = Expense
+        fields = ['id', 'amount', 'category', 'date', 'description']
+        
+from rest_framework import serializers
+from .models import CitizenshipVerification
+
+class CitizenshipVerificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CitizenshipVerification
+        fields = ['user', 'citizenship_card', 'is_verified', 'verification_request_sent', 'verification_date']
+        read_only_fields = ['is_verified', 'verification_request_sent', 'verification_date']
+
+class CitizenshipVerificationAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CitizenshipVerification
+        fields = ['user', 'citizenship_card', 'is_verified', 'verification_request_sent', 'verification_date']
+        read_only_fields = ['is_verified', 'verification_request_sent', 'verification_date', 'user']
+        
+from rest_framework import serializers
+from .models import Role
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['user', 'role']
+from rest_framework import serializers
+from .models import Product
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'productimage', 'price','description']
+
+        
+
+
+
+
+            
+        
+
         
 

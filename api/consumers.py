@@ -1,69 +1,63 @@
-from channels.generic.websocket import AsyncWebsocketConsumer
 import json
-from api.models import MyUser, ChatModel
+from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from django.contrib.auth.models import AnonymousUser
+from api.models import MyUser, Mychats
+from asgiref.sync import sync_to_async
 
-class ChatConsumer(AsyncWebsocketConsumer):
+class MychatApp(AsyncWebsocketConsumer):
     async def connect(self):
-        user_id = self.scope['user'].id
-        other_user_id = self.scope['urlroute']['kwargs']['id']
+        self.user = self.scope.get('user', None)
 
-        if int(user_id) > int(other_user_id):
-            self.room_name = f'{user_id}-{other_user_id}'
+        if self.user and self.user.is_authenticated:
+            await self.accept()
+            print(f"WebSocket CONNECTED for user {self.user}")
         else:
-            self.room_name = f'{other_user_id}-{user_id}'
+            await self.close(code=4001)
+            print(f"WebSocket connection rejected for user {self.user}")
 
-        self.room_group_name = f'chat_{self.room_name}'
-
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-
-        await self.accept()
-
-    async def disconnect(self, code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+    async def disconnect(self, close_code):
+        print(f"WebSocket DISCONNECTED with code {close_code}")
 
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        name = text_data_json['name']
-        receiver = text_data_json['receiver']
+        data = json.loads(text_data)
 
-        await self.save_message(name, message, receiver, self.room_name)
+        me_id = data.get('me_id')
+        frnd_id = data.get('frnd_id')
 
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message,
-                'name': name,
-                'receiver': receiver
-            }
-        )
+        print(f"Received WebSocket message from me_id: {me_id}, frnd_id: {frnd_id}")
 
-    async def chat_message(self, event):
-        message = event['message']
-        name = event['name']
-        receiver = event['receiver']
+        await self.save_chat(text_data)
+
+    async def save_chat(self, text_data):
+        data = json.loads(text_data)
+        me_id = data['me_id']
+        frnd_id = data['frnd_id']
+        message = data['message']
+
+        print(f"me_id: {me_id}, frnd_id: {frnd_id}, message: {message}")
+
+        mychats, created = await self.get_or_create_chat(me_id, frnd_id)
+
+        if mychats is None:
+            await self.close(code=4004)
+            return
+
+        mychats.chats.append({'sender_id': me_id, 'text': message})
+        mychats.save()
 
         await self.send(text_data=json.dumps({
-            'message': message,
-            'receiver': receiver,
-            'name': name
+            'message': 'Chat saved successfully',
+            'me_id': me_id,
+            'frnd_id': frnd_id,
         }))
 
     @database_sync_to_async
-    def save_message(self, name, message, receiver, room_name):
-        user = MyUser.objects.get(id=self.scope['user'].id)
-        receiver_user = MyUser.objects.get(id=receiver)
-        ChatModel.objects.create(
-            name=user,
-            receiver=receiver_user,
-            room_name=room_name,
-            messages=message
-        )
+    def get_or_create_chat(self, me_id, frnd_id):
+        try:
+            me = MyUser.objects.get(id=me_id)
+            frnd = MyUser.objects.get(id=frnd_id)
+            mychats, created = Mychats.objects.get_or_create(me=me, frnd=frnd)
+            return mychats, created
+        except MyUser.DoesNotExist:
+            return None, False

@@ -1,4 +1,4 @@
-#!/Users/macbook/agrotechhub/agrotechapi/myenv/bin/python
+#!/Users/macbook/agrotechhub/agrotechapi/myenv/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys

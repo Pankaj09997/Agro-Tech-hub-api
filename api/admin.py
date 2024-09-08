@@ -6,7 +6,7 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
 from api.models import MyUser
-from api.models import Comment,Post,Video,VideoComment,ChatModel
+from api.models import Comment,Post,Video,VideoComment,Mychats,Expense,CitizenshipVerification,Role,Product
 
 
 class UserCreationForm(forms.ModelForm):
@@ -96,6 +96,32 @@ admin.site.register(Post)
 admin.site.register(Comment)
 admin.site.register(Video)
 admin.site.register(VideoComment)
-admin.site.register(ChatModel)
+admin.site.register(Mychats)
 admin.site.unregister(Group)
+admin.site.register(Expense)
+admin.site.register(Role)
+admin.site.register(Product)
+from django.contrib import admin
+from .models import CitizenshipVerification
+from django.utils import timezone
+@admin.register(CitizenshipVerification)
+class CitizenshipVerificationAdmin(admin.ModelAdmin):
+    list_display = ['user', 'is_verified', 'verification_request_sent', 'verification_date']
+    list_filter = ['is_verified', 'verification_request_sent']
+    search_fields = ['user__username']
+
+    actions = ['approve_verification', 'reject_verification']
+
+    def approve_verification(self, request, queryset):
+        queryset.update(is_verified=True, verification_date=timezone.now())
+        # You can also send a notification email to the user here
+
+    def reject_verification(self, request, queryset):
+        queryset.update(is_verified=False)
+        # Optionally notify user of rejection
+
+    approve_verification.short_description = "Approve selected verifications"
+    reject_verification.short_description = "Reject selected verifications"
+
+
 
