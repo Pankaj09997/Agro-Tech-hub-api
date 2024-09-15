@@ -3,5 +3,5 @@ from api.consumers import MychatApp
 
 websocket_urlpatterns =[
 
-    path('ws/wsc/',MychatApp.as_asgi())
+    path('ws/wsc/<int:pk>',MychatApp.as_asgi())
 ]

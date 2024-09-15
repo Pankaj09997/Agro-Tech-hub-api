@@ -2,12 +2,12 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,ExpenseSerializers
+from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,ExpenseSerializers,ProductSerializer
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from api.models import Post,Comment,VideoComment,Video,MyUser,Expense
+from api.models import Post,Comment,VideoComment,Video,MyUser,Expense,Product
 
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
@@ -279,65 +279,156 @@ class SelectRoleView(APIView):
                 return Response({"status": "success", "detail": "Role updated successfully."}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from .models import Product
-from .serializers import ProductSerializer
+# from rest_framework import status
+# from rest_framework.response import Response
+# from rest_framework.views import APIView
+# from rest_framework.permissions import IsAuthenticated
+# from .models import Product
+# from .serializers import ProductSerializer
 
-class ProductListView(APIView):
-    """
-    List all products.
-    """
-    def get(self, request):
-        products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
-
-
-class ProductCreateView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        serializer = ProductSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(farmer=request.user, user=request.user)  # Set farmer to the authenticated user
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            print(serializer.errors)  # Log errors
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class ProductListView(APIView):
+#     """
+#     List all products.
+#     """
+#     def get(self, request):
+#         products = Product.objects.all()
+#         serializer = ProductSerializer(products, many=True)
+#         return Response(serializer.data)
 
 
-class UserProductListView(APIView):
-    """
-    List products of the authenticated user.
-    """
-    permission_classes = [IsAuthenticated]
+# class ProductCreateView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        products = Product.objects.filter(farmer=request.user)
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+#     def post(self, request):
+#         serializer = ProductSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save(farmer=request.user, user=request.user)  # Set farmer to the authenticated user
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         else:
+#             print(serializer.errors)  # Log errors
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class UserProductListView(APIView):
+#     """
+#     List products of the authenticated user.
+#     """
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         products = Product.objects.filter(farmer=request.user)
+#         serializer = ProductSerializer(products, many=True)
+#         return Response(serializer.data)
     
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import Product
-from .serializers import ProductSerializer
-from rest_framework.permissions import IsAuthenticated
+# from rest_framework import status
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from .models import Product
+# from .serializers import ProductSerializer
+# from rest_framework.permissions import IsAuthenticated
 
-class ProductUpdateView(APIView):
+# class ProductDetailView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self,request,id):
+#         queryset=Product.objects.get(id=id,user=request.user)
+#         serializers=PostSerializers(queryset)
+#         if serializers.is_valid(raise_exception=True):
+#             serializers.save()
+#             return Response(serializers.data)
+#         else:
+#             return Response(serializers.errors)
+        
+#     def put(self,request,get):
+#         queryset=Product.objects.get(id=id,user=request.user)
+#         serializers=ProductSerializer(queryset,data=request.data,many=True)
+#         if serializers.is_valid(raise_exception=True):
+#             serializers.save()
+#             return Response(serializers.data)
+#         else:
+#             return Response(serializers._errors)
+#     def delete(self,request,id):
+#         queryset=Product.objects.get(id=id,user=request.user)
+#         queryset.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        
+class FarmerProductListView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def put(self, request, pk):
-        try:
-            product = Product.objects.get(pk=pk)
-        except Product.DoesNotExist:
-            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+    def get(self, request):
+        queryset = Product.objects.filter(farmer=request.user)
+        serializer = ProductSerializer(queryset, many=True) 
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        serializer = ProductSerializer(product, data=request.data, partial=True)
+class FarmerProductAddView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request):
+        serializers=ProductSerializer(request.data,farmer=request.user)
+        if serializers.is_valid(raise_exception=True):
+            serializers.save()
+            return Response(serializers.data,status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializers.errors)
+        
+
+
+class FarmerProductDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        product = get_object_or_404(Product, id=id, farmer=request.user)  
+        serializer = ProductSerializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, id):
+        product = get_object_or_404(Product, id=id, farmer=request.user)  
+        serializer = ProductSerializer(product, data=request.data, partial=True)  
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        product = get_object_or_404(Product, id=id, farmer=request.user)  
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    
+class BuyerListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        products = Product.objects.all()  
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class BuyerDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        product = get_object_or_404(Product, id=id)  
+        serializer = ProductSerializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+
+    
+
+    
+        
+            
+        
+        
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    

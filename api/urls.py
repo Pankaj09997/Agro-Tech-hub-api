@@ -1,5 +1,5 @@
 from django.urls import path
-from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll,UserListView,ChatHistoryView,ExpenseListCreateAPIView,ExpenseDetailAPIView,SelectRoleView,ProductListView,UserProductListView,ProductCreateView,ProductUpdateView
+from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll,UserListView,ChatHistoryView,ExpenseListCreateAPIView,ExpenseDetailAPIView,SelectRoleView,FarmerProductListView,FarmerProductDetailView,FarmerProductAddView,BuyerDetailView,BuyerListView
 from django.conf.urls.static import static
 from django.conf import settings
 from django.urls import path
@@ -23,10 +23,13 @@ urlpatterns = [
     path('expenses/<int:pk>/', ExpenseDetailAPIView.as_view(), name='expense-detail'),
     path('citizenship/submit/', SubmitCitizenshipVerification.as_view(), name='submit_citizenship_verification'),
      path('select-role/', SelectRoleView.as_view(), name='select_role'),
-    path('products/', ProductListView.as_view(), name='product-list'),
-    path('products/add/', ProductCreateView.as_view(), name='product-create'),
-    path('my-products/', UserProductListView.as_view(), name='user-product-list'),
-path('products/<int:pk>/', ProductUpdateView.as_view(), name='product-update'),
+     path('farmerlist/', FarmerProductListView.as_view(), name='productlist'),
+     path('farmerproductadd/', FarmerProductAddView.as_view(), name='addproduct'),
+     path('detail/<int:id>/', FarmerProductDetailView.as_view(), name='detail'),
+     path('buyerlist/', BuyerListView.as_view(), name='buyerlist'),
+     path('buyerdetail/<int:id>/', BuyerDetailView.as_view(), name='productdetail'),
+     
+
     
 
     

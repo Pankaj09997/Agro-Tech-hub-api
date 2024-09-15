@@ -6,7 +6,7 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
 from api.models import MyUser
-from api.models import Comment,Post,Video,VideoComment,Mychats,Expense,CitizenshipVerification,Role,Product
+from api.models import Comment,Post,Video,VideoComment,Mychats,Expense,CitizenshipVerification,Role,Product,CartItem
 
 
 class UserCreationForm(forms.ModelForm):
@@ -101,6 +101,7 @@ admin.site.unregister(Group)
 admin.site.register(Expense)
 admin.site.register(Role)
 admin.site.register(Product)
+admin.site.register(CartItem)
 from django.contrib import admin
 from .models import CitizenshipVerification
 from django.utils import timezone

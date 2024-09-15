@@ -175,3 +175,17 @@ class Product(models.Model):
     farmer = models.ForeignKey(MyUser, related_name='products_as_farmer', on_delete=models.CASCADE)
     user = models.ForeignKey(MyUser, related_name='products_as_user', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+class CartItem(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    item = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(auto_now_add=True)
+    price_at_the_time = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'item')
+
+    def __str__(self):
+        return f"{self.quantity} x {self.item.name} for {self.user.name}"
+
