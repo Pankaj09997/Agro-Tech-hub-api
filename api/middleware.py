@@ -11,8 +11,7 @@ def get_user(token_key):
         token = AccessToken(token_key)
         user = get_user_model().objects.get(id=token['user_id'])
         return user
-    except Exception as e:
-        print(f"Error in get_user: {e}")
+    except Exception:
         return AnonymousUser()
 
 class JwtAuthMiddleware(BaseMiddleware):

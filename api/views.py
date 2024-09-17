@@ -2,12 +2,12 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,ExpenseSerializers,ProductSerializer
+from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,ExpenseSerializers,ProductSerializer,CartItemSerializers
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from api.models import Post,Comment,VideoComment,Video,MyUser,Expense,Product
+from api.models import Post,Comment,VideoComment,Video,MyUser,Expense,Product,CartItem,Mychats
 
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
@@ -146,29 +146,71 @@ class UserListView(APIView):
         serializers = UserSerializers(queryset, many=True)
         return Response(serializers.data, status=status.HTTP_200_OK)
     
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from api.models import Mychats, MyUser
+
+# class ChatHistoryView(APIView):
+#     def get(self, request, me_id, frnd_id):
+#         try:
+#             me = MyUser.objects.get(id=me_id)
+#             frnd = MyUser.objects.get(id=frnd_id)
+#             chat = Mychats.objects.filter(me=me, frnd=frnd).first()
+
+#             if chat:
+#                 return Response(chat.chats)  # Return the list of messages
+#             else:
+#                 return Response([])  # Return empty list if no chat history found
+#         except MyUser.DoesNotExist:
+#             return Response({"error": "User does not exist"}, status=400)
 class ChatHistoryView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensures the user is logged in
+    def get(self, request, me_id, frnd_id):
+        try:
+            # Sort the IDs to ensure consistency
+            sorted_ids = sorted([me_id, frnd_id])
 
-    def get(self, request):
-        # Step 1: Get the 'user' parameter from the request
-        frnd_name = request.query_params.get('user', None)
-        mychats_data = None
+            me = MyUser.objects.get(id=sorted_ids[0])
+            frnd = MyUser.objects.get(id=sorted_ids[1])
 
-        # Step 2: Check if the friend exists and chats exist between the logged-in user and the friend
-        if frnd_name:
-            if MyUser.objects.filter(username=frnd_name).exists():
-                frnd_ = MyUser.objects.get(username=frnd_name)
-                if MyUser.objects.filter(me=request.user, frnd=frnd_).exists():
-                    mychats_data = MyUser.objects.get(me=request.user, frnd=frnd_).chats
+            chat = Mychats.objects.filter(me=me, frnd=frnd).first()
 
-        # Step 3: Get all other users (friends) excluding the logged-in user
-        frnds = MyUser.objects.exclude(pk=request.user.id)
+            if chat:
+                return Response(chat.chats)  # Return the list of messages
+            else:
+                return Response([])  # Return empty list if no chat history found
+        except MyUser.DoesNotExist:
+            return Response({"error": "User does not exist"}, status=400)
 
-        # Step 4: Return JSON response with chat data and friend list
-        return Response({
-            'my_chats': mychats_data if mychats_data else "No chat data available.",
-            'friends': [{'id': user.id, 'username': user.username} for user in frnds]
-        }, status=status.HTTP_200_OK)
+
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework.permissions import IsAuthenticated
+# from api.models import MyUser, Mychats
+
+# class ChatHistoryView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, me_id, frnd_id):
+#         # Ensure the IDs are ordered consistently
+#         me_id, frnd_id = sorted([me_id, frnd_id])
+
+#         try:
+#             # Query for the chat history using the ordered IDs
+#             me = MyUser.objects.get(id=me_id)
+#             frnd = MyUser.objects.get(id=frnd_id)
+#             mychats = Mychats.objects.get(me=me, frnd=frnd)
+
+#             # Return the chat history
+#             return Response({
+#                 'chats': mychats.chats,
+#                 'me': me_id,
+#                 'frnd': frnd_id
+#             })
+#         except Mychats.DoesNotExist:
+#             return Response({'error': 'No chat history found'}, status=404)
+#         except MyUser.DoesNotExist:
+#             return Response({'error': 'User not found'}, status=404)
+
         
 class ExpenseListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -411,7 +453,32 @@ class BuyerDetailView(APIView):
         serializer = ProductSerializer(product)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+class GetCartItemView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request):
+        cartitem=CartItem.objects.filter(user=request.user)
+        serializers=CartItemSerializers(cartitem,many=True)
+        return Response(serializers.data,status=status.HTTP_200_OK)
     
+class PostCartItemView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request):
+        product_id=request.data.get('id')
+        product=Product.objects.get(id=product_id)
+        cart_item,created=CartItem.objects.get_or_create(
+            user=request.user,
+            item=product,
+            quantity=1
+        )
+        if not created:
+            cart_item.quantity+=1
+            cart_item.save()
+        serializer=CartItemSerializers(cart_item)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
+            
+        
+        
 
     
 

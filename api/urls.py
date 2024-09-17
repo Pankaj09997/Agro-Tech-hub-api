@@ -1,5 +1,5 @@
 from django.urls import path
-from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll,UserListView,ChatHistoryView,ExpenseListCreateAPIView,ExpenseDetailAPIView,SelectRoleView,FarmerProductListView,FarmerProductDetailView,FarmerProductAddView,BuyerDetailView,BuyerListView
+from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll,UserListView,ChatHistoryView,ExpenseListCreateAPIView,ExpenseDetailAPIView,SelectRoleView,FarmerProductListView,FarmerProductDetailView,FarmerProductAddView,BuyerDetailView,BuyerListView,GetCartItemView,PostCartItemView
 from django.conf.urls.static import static
 from django.conf import settings
 from django.urls import path
@@ -28,6 +28,13 @@ urlpatterns = [
      path('detail/<int:id>/', FarmerProductDetailView.as_view(), name='detail'),
      path('buyerlist/', BuyerListView.as_view(), name='buyerlist'),
      path('buyerdetail/<int:id>/', BuyerDetailView.as_view(), name='productdetail'),
+     path('addtocart/',PostCartItemView.as_view(),name='addtocart'),
+     path('getcart/',GetCartItemView.as_view(),name='getcartitem'),
+     path('chat-history/<int:me_id>/<int:frnd_id>/', ChatHistoryView.as_view(), name='chat-history'),
+
+
+
+     
      
 
     

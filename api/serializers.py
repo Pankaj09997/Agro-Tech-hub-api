@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment,Expense
+from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment,Expense,CartItem
 
 
 
@@ -121,7 +121,18 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'name', 'productimage', 'price','description']
+        
+# class CartItemSerializers(serializers.ModelSerializer):
+#     class Meta:
+#         model=CartItem
+#         fields=["item","quantity","added_at","price_at_the_time"]
+        
+class CartItemSerializers(serializers.ModelSerializer):
+    item = ProductSerializer()  # Nest the ProductSerializer here
 
+    class Meta:
+        model = CartItem
+        fields = ['item', 'quantity', 'added_at', 'price_at_the_time']
         
 
 
