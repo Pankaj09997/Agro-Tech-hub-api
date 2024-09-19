@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment,Expense,CartItem
+from api.models import MyUserManager, MyUser,Post,Comment,Video,VideoComment,Expense,CartItem,Notification
 
 
 
@@ -122,17 +122,21 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['id', 'name', 'productimage', 'price','description']
         
-# class CartItemSerializers(serializers.ModelSerializer):
-#     class Meta:
-#         model=CartItem
-#         fields=["item","quantity","added_at","price_at_the_time"]
         
 class CartItemSerializers(serializers.ModelSerializer):
-    item = ProductSerializer()  # Nest the ProductSerializer here
+    item = ProductSerializer()  
 
     class Meta:
         model = CartItem
         fields = ['item', 'quantity', 'added_at', 'price_at_the_time']
+        
+class NotificationSerializer(serializers.ModelSerializer):
+    product = serializers.CharField(source='product.name')
+    buyer = serializers.CharField(source='buyer.username')
+
+    class Meta:
+        model = Notification
+        fields = ['product', 'buyer', 'message', 'created_at']
         
 
 

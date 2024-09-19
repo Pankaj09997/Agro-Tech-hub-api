@@ -192,3 +192,13 @@ class CartItem(models.Model):
     def __str__(self):
         return f"{self.quantity} x {self.item.name} for {self.user.name}"
 
+class Notification(models.Model):
+    product = models.ForeignKey(Product, related_name='notifications', on_delete=models.CASCADE) 
+    farmer = models.ForeignKey(MyUser, related_name='farmer_notifications', on_delete=models.CASCADE)  
+    buyer = models.ForeignKey(MyUser, related_name='buyer_notifications', on_delete=models.CASCADE)  
+    message = models.TextField()  
+    created_at = models.DateTimeField(auto_now_add=True)  
+    is_read = models.BooleanField(default=False)  
+
+    def __str__(self):
+        return f"Notification for {self.farmer.username} about {self.product.name}"

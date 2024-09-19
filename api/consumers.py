@@ -322,5 +322,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_room_name(self, me_id, frnd_id):
         # Return a consistent room name by sorting the user IDs
         sorted_ids = sorted([me_id, frnd_id])
+        print(sorted_ids)
         return f'chat_{sorted_ids[0]}_{sorted_ids[1]}'
 

@@ -2,12 +2,12 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,ExpenseSerializers,ProductSerializer,CartItemSerializers
+from api.serializers import ChangePasswordSerializer, UserRegistrationSerializers, UserLoginSerializers, UserProfileSerializers, ChangePasswordSerializer,PostSerializers,CommentSerializers,VideoSerializers,VideoCommentSerializers,UserSerializers,ExpenseSerializers,ProductSerializer,CartItemSerializers,NotificationSerializer
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from api.models import Post,Comment,VideoComment,Video,MyUser,Expense,Product,CartItem,Mychats
+from api.models import Post,Comment,VideoComment,Video,MyUser,Expense,Product,CartItem,Mychats,Notification
 
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
@@ -321,78 +321,6 @@ class SelectRoleView(APIView):
                 return Response({"status": "success", "detail": "Role updated successfully."}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-# from rest_framework import status
-# from rest_framework.response import Response
-# from rest_framework.views import APIView
-# from rest_framework.permissions import IsAuthenticated
-# from .models import Product
-# from .serializers import ProductSerializer
-
-# class ProductListView(APIView):
-#     """
-#     List all products.
-#     """
-#     def get(self, request):
-#         products = Product.objects.all()
-#         serializer = ProductSerializer(products, many=True)
-#         return Response(serializer.data)
-
-
-# class ProductCreateView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         serializer = ProductSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(farmer=request.user, user=request.user)  # Set farmer to the authenticated user
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         else:
-#             print(serializer.errors)  # Log errors
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class UserProductListView(APIView):
-#     """
-#     List products of the authenticated user.
-#     """
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         products = Product.objects.filter(farmer=request.user)
-#         serializer = ProductSerializer(products, many=True)
-#         return Response(serializer.data)
-    
-# from rest_framework import status
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from .models import Product
-# from .serializers import ProductSerializer
-# from rest_framework.permissions import IsAuthenticated
-
-# class ProductDetailView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self,request,id):
-#         queryset=Product.objects.get(id=id,user=request.user)
-#         serializers=PostSerializers(queryset)
-#         if serializers.is_valid(raise_exception=True):
-#             serializers.save()
-#             return Response(serializers.data)
-#         else:
-#             return Response(serializers.errors)
-        
-#     def put(self,request,get):
-#         queryset=Product.objects.get(id=id,user=request.user)
-#         serializers=ProductSerializer(queryset,data=request.data,many=True)
-#         if serializers.is_valid(raise_exception=True):
-#             serializers.save()
-#             return Response(serializers.data)
-#         else:
-#             return Response(serializers._errors)
-#     def delete(self,request,id):
-#         queryset=Product.objects.get(id=id,user=request.user)
-#         queryset.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
         
         
 class FarmerProductListView(APIView):
@@ -476,7 +404,34 @@ class PostCartItemView(APIView):
         serializer=CartItemSerializers(cart_item)
         return Response(serializer.data,status=status.HTTP_200_OK)
     
-            
+class NotificationPost(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request,id):
+        buyer=request.user
+        product=get_object_or_404(Product,id=id)
+        farmer=product.farmer
+        message=f"{buyer.username} is interested in buying {product.name}."
+        Notification.objects.create(
+            product=product,
+            farmer=farmer,
+            buyer=buyer,
+            message=message
+        )
+        return Response({"message":"Notification sent to the farmer"},status=status.HTTP_201_CREATED)
+
+class NotificationGet(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        farmer = request.user  # Get the farmer (logged-in user)
+        notifications = Notification.objects.filter(farmer=farmer)  # Farmer's notifications
+
+        # Use the serializer to serialize the notification data
+        serializer = NotificationSerializer(notifications, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+
         
         
 

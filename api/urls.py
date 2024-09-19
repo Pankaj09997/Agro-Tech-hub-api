@@ -1,5 +1,5 @@
 from django.urls import path
-from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll,UserListView,ChatHistoryView,ExpenseListCreateAPIView,ExpenseDetailAPIView,SelectRoleView,FarmerProductListView,FarmerProductDetailView,FarmerProductAddView,BuyerDetailView,BuyerListView,GetCartItemView,PostCartItemView
+from api.views import UserRegistrationView, UserLoginView, UserProfileView, UserChangePasswordView,PostView,CommentView,PostAllView,VideoView,VideoAll,UserListView,ChatHistoryView,ExpenseListCreateAPIView,ExpenseDetailAPIView,SelectRoleView,FarmerProductListView,FarmerProductDetailView,FarmerProductAddView,BuyerDetailView,BuyerListView,GetCartItemView,PostCartItemView,NotificationGet,NotificationPost
 from django.conf.urls.static import static
 from django.conf import settings
 from django.urls import path
@@ -31,6 +31,9 @@ urlpatterns = [
      path('addtocart/',PostCartItemView.as_view(),name='addtocart'),
      path('getcart/',GetCartItemView.as_view(),name='getcartitem'),
      path('chat-history/<int:me_id>/<int:frnd_id>/', ChatHistoryView.as_view(), name='chat-history'),
+     path('notifications/', NotificationGet.as_view(), name='notification_get'),
+     path('notifications/send/<int:id>/', NotificationPost.as_view(), name='notification_post'),
+     
 
 
 
