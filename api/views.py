@@ -179,7 +179,7 @@ class ChatHistoryView(APIView):
             else:
                 return Response([])  # Return empty list if no chat history found
         except MyUser.DoesNotExist:
-            return Response({"error": "User does not exist"}, status=400)
+            return Response({"error": "User does not exists"}, status=400)
 
 
 # from rest_framework.views import APIView
