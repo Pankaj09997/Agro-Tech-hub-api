@@ -6,7 +6,7 @@
 
 # class ChatConsumer(AsyncWebsocketConsumer):
 #     async def connect(self):
-#         self.user = self.scope['user']  # User authenticated via JWT token
+#         self.user = self.scope['user']  # User authenticated via JWT tokens
 
 #         if self.user and self.user.is_authenticated:
 #             # Create a room name using the user’s ID to ensure uniqueness
