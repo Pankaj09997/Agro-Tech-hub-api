@@ -209,7 +209,7 @@ class ChatHistoryView(APIView):
 #         except Mychats.DoesNotExist:
 #             return Response({'error': 'No chat history found'}, status=404)
 #         except MyUser.DoesNotExist:
-#             return Response({'error': 'User not found'}, status=404)
+#             return Response({'error': 'User not found'}, status=404),
 
         
 class ExpenseListCreateAPIView(APIView):
