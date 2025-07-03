@@ -88,9 +88,9 @@ ASGI_APPLICATION = 'agrotechapi.asgi.application'
 # }
 DATABASES={}
 database_url=os.environ.get("DATABASE_URL")
-# DATABASES['default']=dj_database_url.parse("postgresql://agro_tech_hub_user:Xwa1Esj19lExEHdNN4a50JNicxjrEdLc@dpg-d1iu3nqdbo4c73bq3ej0-a.oregon-postgres.render.com/agro_tech_hub")
+
 DATABASES['default']=dj_database_url.parse(database_url)
-# postgresql://agro_tech_hub_user:Xwa1Esj19lExEHdNN4a50JNicxjrEdLc@dpg-d1iu3nqdbo4c73bq3ej0-a.oregon-postgres.render.com/agro_tech_hub
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
