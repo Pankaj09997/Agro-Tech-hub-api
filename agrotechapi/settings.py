@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
+import environ
 from datetime import timedelta
+env=environ.Env()
+environ.Env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = '/media/'
@@ -70,8 +73,14 @@ ASGI_APPLICATION = 'agrotechapi.asgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+       'ENGINE': 'django.db.backends.postgresql',
+       'NAME': env("DB_NAME"),
+       'USER': env("DB_USER"),
+       'PASSWORD': env("DB_PASSWORD"),
+       'HOST': env("DB_HOST"),
+       'PORT': env("DB_PORT")
     }
 }
 
@@ -89,6 +98,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
