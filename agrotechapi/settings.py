@@ -4,16 +4,19 @@ import environ
 from datetime import timedelta
 env=environ.Env()
 environ.Env.read_env()
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-SECRET_KEY = '*************************'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-DEBUG = True
+DEBUG = os.environ.get("DEBUG","False").lower()=="true"
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
+
 
 INSTALLED_APPS = [
     'daphne',
@@ -71,18 +74,23 @@ CHANNEL_LAYERS = {
 WSGI_APPLICATION = 'agrotechapi.wsgi.application'
 ASGI_APPLICATION = 'agrotechapi.asgi.application'
 
-DATABASES = {
-    'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-       'ENGINE': 'django.db.backends.postgresql',
-       'NAME': env("DB_NAME"),
-       'USER': env("DB_USER"),
-       'PASSWORD': env("DB_PASSWORD"),
-       'HOST': env("DB_HOST"),
-       'PORT': env("DB_PORT")
-    }
-}
+# DATABASES = {
+#     'default': {
+#         # 'ENGINE': 'django.db.backends.sqlite3',
+#         # 'NAME': BASE_DIR / 'db.sqlite3',
+#        'ENGINE': 'django.db.backends.postgresql',
+#        'NAME': env("DB_NAME"),
+#        'USER': env("DB_USER"),
+#        'PASSWORD': env("DB_PASSWORD"),
+#        'HOST': env("DB_HOST"),
+#        'PORT': env("DB_PORT")
+#     }
+# }
+DATABASES={}
+database_url=os.environ.get("DATABASE_URL")
+# DATABASES['default']=dj_database_url.parse("postgresql://agro_tech_hub_user:Xwa1Esj19lExEHdNN4a50JNicxjrEdLc@dpg-d1iu3nqdbo4c73bq3ej0-a.oregon-postgres.render.com/agro_tech_hub")
+DATABASES['default']=dj_database_url.parse(database_url)
+# postgresql://agro_tech_hub_user:Xwa1Esj19lExEHdNN4a50JNicxjrEdLc@dpg-d1iu3nqdbo4c73bq3ej0-a.oregon-postgres.render.com/agro_tech_hub
 
 AUTH_PASSWORD_VALIDATORS = [
     {
