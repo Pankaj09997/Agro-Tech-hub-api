@@ -119,6 +119,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.MyUser'
 
 CORS_ALLOWED_ORIGINS = [
+    "agro-tech-hub-api.onrender.com",
+    "https://deploymenr-git-master-pankaj09997s-projects.vercel.app/"
     "https://example.com",
     "https://sub.example.com",
     "http://localhost:8000",
